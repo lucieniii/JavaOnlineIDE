@@ -48,7 +48,7 @@ export default {
   },
   methods: {
     run () {
-      this.result = '代码运行中...'
+      this.display = '代码运行中...'
       axios.get('/api/run', {
         params: {
           code: encodeURIComponent(this.code),
