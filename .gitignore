@@ -1,5 +1,6 @@
 HELP.md
 target/
+!target/*.jar
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**
 !**/src/test/**
@@ -25,6 +26,8 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
+/build/
+!/web/build
 
 ### VS Code ###
 .vscode/
@@ -42,3 +45,7 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+
+### npm build ###
+/src/main/resources/static/
+/src/main/resources/templates/
