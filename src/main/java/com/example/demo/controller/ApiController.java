@@ -34,7 +34,10 @@ public class ApiController {
     ResponseEntity<Object> run(
             @RequestParam(value = "code", defaultValue = "") String code,
             @RequestParam(value = "language") String language,
-            @RequestParam(value = "password", defaultValue = "") String password
+            @RequestParam(value = "password", defaultValue = "") String password,
+            @RequestParam(value = "consoleInput", defaultValue = "") String consoleInput,
+            @RequestParam(value = "option", defaultValue = "") String option
+
     ) {
         // 检测密码
         if (!password.equals("aikxNo.1")) {
@@ -69,6 +72,26 @@ public class ApiController {
             }
             case "g++": {
                 command = String.format("g++ %s -o %s.out && %s.out", filename, filename, filename);
+                break;
+            }
+            case "gcc": {
+                command = String.format("gcc %s -o %s.out && %s.out", filename, filename, filename);
+                break;
+            }
+            case "java8": {
+                command = "";
+                break;
+            }
+            case "java12": {
+                command = "";
+                break;
+            }
+            case "java13": {
+                command = "";
+                break;
+            }
+            case "javascript": {
+                command = "";
                 break;
             }
             default: {
@@ -106,6 +129,7 @@ public class ApiController {
                     Map.of("result", result, "error", error),
                     HttpStatus.OK
             );
+            // System.out.println(((Map<String, String>)ret.getBody()).get("result"));
         } catch (Exception e) {
             e.printStackTrace();
             ret = new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -127,6 +151,15 @@ public class ApiController {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         }
+        //python2.7
+        //python3.6
+        //c
+        //c++
+        //java
+        //javascript
+
+        // 头文件限制、控制台输入、多文件、
+        // 时间检测、空间检测、文件比对
 
         return ret;
     }
