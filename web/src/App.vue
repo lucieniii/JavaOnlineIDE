@@ -78,8 +78,8 @@ export default {
   }
 
   textarea {
-    font-family: Consolas, "Courier New", Monospaced, 微软雅黑, monospace;
-    height: auto;
-    resize: none;
+    font-family: Consolas, "Courier New", Monospaced, 微软雅黑, monospace !important;
+    height: auto !important;
+    resize: none !important;
   }
 </style>
