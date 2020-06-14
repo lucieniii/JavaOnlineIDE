@@ -35,32 +35,24 @@
       <div class="col s7">
         <div class="card">
           <div class="card-content">
-            <textarea rows="25" id="code" v-model="code" @keydown.tab="tab($event)"></textarea>
+            <textarea rows="20" id="code" v-model="code" @keydown.tab="tab($event)"></textarea>
           </div>
         </div>
       </div>
       <div class="col s5">
         <div class="card">
           <div class="card-content">
-            <textarea rows="25" readonly="readonly" v-model="display"></textarea>
+            <textarea rows="20" readonly="readonly" v-model="display"></textarea>
           </div>
         </div>
       </div>
     </div>
+    <div id="judge" class="modal">
+      <div class="modal-content">
+        <h4>{{judge}}!</h4>
+      </div>
+    </div>
   </div>
-  <!--      <html>-->
-  <!--      <head>-->
-  <!--        <meta http-equiv="Content-type" content="text/html; charset=UTF-8">-->
-  <!--        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>-->
-  <!--        <title>单文件上传</title>-->
-  <!--      </head>-->
-  <!--      <body>-->
-  <!--      <form method="post" action="/api" enctype="multipart/form-data">-->
-  <!--        <input type="file" name="file"><br>-->
-  <!--        <input type="submit" value="提交">-->
-  <!--      </form>-->
-  <!--      </body>-->
-  <!--      </html>-->
 </template>
 
 <script>
@@ -74,9 +66,9 @@ export default {
       language: 'python3',
       tle: '',
       stdin: '',
-      file: '',
       code: '',
-      display: ''
+      display: '',
+      judge: ''
     }
   },
   mounted () {
@@ -85,17 +77,27 @@ export default {
   methods: {
     run () {
       this.display = '代码运行中...'
-      axios.get('/api/run', {
-        params: {
-          language: this.language,
-          tle: this.tle,
-          stdin: encodeURIComponent(this.stdin),
-          code: encodeURIComponent(this.code),
-          password: 'aikxNo.1'
+      const files = document.querySelector('input[type=file]').files
+      const form = new FormData()
+      if (files.length === 1) {
+        form.append('file', files[0])
+      }
+      form.append('language', this.language)
+      form.append('tle', this.tle)
+      form.append('stdin', encodeURIComponent(this.stdin))
+      form.append('code', encodeURIComponent(this.code))
+      form.append('password', 'aikxNo.1')
+      axios.post('/api/run', form, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
       }).then((response) => {
         console.log(response.data)
         this.display = response.data.result || response.data.error
+        this.judge = response.data.judge
+        if (this.judge) {
+          M.Modal.getInstance(document.querySelector('#judge')).open()
+        }
       }).catch((err) => {
         console.log(err)
         this.display = '未知错误'
@@ -125,6 +127,7 @@ export default {
     text-align: center;
     color: #2c3e50;
     height: 100%;
+    margin-top: 30px;
   }
 
   textarea {
