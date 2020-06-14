@@ -201,8 +201,8 @@ public class ApiController {
             Future<String[]> future = exec.submit(call);
 
             // 判断运行时间，若超时则直接杀死进程
-            results = future.get(5000 + 1000 * Integer.parseInt(tle), TimeUnit.MILLISECONDS); // 任务处理超时时间设为1 秒
-
+            // 最大运行30s
+            results = future.get(5000 + 1000 * Math.min(Integer.parseInt(tle), 30), TimeUnit.MILLISECONDS); // 任务处理超时时间设为1 秒
             System.out.println("任务成功返回:");
             System.out.println(results[0] + " " + results[1]);
             ret = new ResponseEntity<>(
@@ -211,10 +211,8 @@ public class ApiController {
             );
             // Map + 状态码
             // System.out.println(((Map<String, String>)ret.getBody()).get("result"));
-
         } catch (TimeoutException ex) {
             System.out.println("处理超时");
-            System.exit(0);
             ret = new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT);
         } catch (Exception e) {
             System.out.println("处理失败.");
