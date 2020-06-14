@@ -236,6 +236,11 @@ public class ApiController {
                 file.delete();
                 break;
             }
+            case "java8":{
+                file = new File("Main.class");
+                file.delete();
+                break;
+            }
             default: {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
