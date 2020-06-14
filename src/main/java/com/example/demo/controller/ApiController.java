@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,8 +69,10 @@ public class ApiController {
             return "AC";
         else
             return "PE";
-
     }
+
+    @Value("${execPrefix}")
+    private String execPrefix;
     
     @GetMapping("/run")
     ResponseEntity<Object> run(
@@ -107,17 +110,17 @@ public class ApiController {
             }
             case "g++": {
                 filename += ".cpp";
-                command = String.format("cmd /c g++ %s -o %s.out && %s.out", filename, filename, filename);
+                command = String.format("%sg++ %s -o %s.out && %s.out", execPrefix, filename, filename, filename);
                 break;
             }
             case "gcc": {
                 filename += ".c";
-                command = String.format("cmd /c gcc %s -o %s.out && %s.out", filename, filename, filename);
+                command = String.format("%sgcc %s -o %s.out && %s.out", execPrefix, filename, filename, filename);
                 break;
             }
             case "java8": {
                 filename = "Main.java";
-                command = String.format("cmd /c javac %s && java Main", filename);
+                command = String.format("%sjavac %s && java Main", execPrefix, filename);
                 break;
             }
             case "java12": {

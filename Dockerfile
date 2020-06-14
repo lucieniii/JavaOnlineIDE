@@ -1,3 +1,3 @@
-FROM ubuntu:16.04
+FROM python:3.8.3
 ADD sources.list /etc/apt
-RUN apt update
+RUN apt-get update

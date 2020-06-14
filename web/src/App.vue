@@ -4,9 +4,9 @@
     <div class="row">
       <div class="input-field col s4">
         <select v-model="language">
-          <option value="python3.6" selected>Python(3.6)</option>
-          <option value="g++">C++(g++)</option>
-          <option value="gcc">C(gcc)</option>
+          <option value="python3.6" selected>Python(3.8.3)</option>
+          <option value="g++">C++(g++8.3.0)</option>
+          <option value="gcc">C(gcc8.3.0)</option>
           <option value="java8">Java(jdk8)</option>
           <option value="java12">Java(jdk12)</option>
         </select>
