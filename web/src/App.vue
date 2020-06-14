@@ -18,7 +18,7 @@
       </div>
       <div class="input-field btn col s1 offset-s1" @click="run">运行</div>
       <div class="input-field col s8">
-        <input type="text" id="stdin">
+        <input type="text" id="stdin" v-model="stdin">
         <label for="stdin">标准输入(stdin)</label>
       </div>
       <div class="file-field input-field col s4">
@@ -89,7 +89,7 @@ export default {
         params: {
           language: this.language,
           tle: this.tle,
-          consoleInput: this.stdin,
+          stdin: encodeURIComponent(this.stdin),
           code: encodeURIComponent(this.code),
           password: 'aikxNo.1'
         }
