@@ -101,47 +101,38 @@ public class ApiController {
         String filename = randomFileName();
 
         // 生成命令
-        String command;
+        String command = execPrefix;
         switch (language) {
-            case "python3.6": {
+            case "python3": {
                 filename += ".py";
-                command = String.format("python %s", filename);
+                command += String.format("python %s", filename);
                 break;
             }
             case "g++": {
                 filename += ".cpp";
-                command = String.format("%sg++ %s -o %s.out && %s.out", execPrefix, filename, filename, filename);
+                command += String.format("g++ %s -o %s.out && ./%s.out", filename, filename, filename);
                 break;
             }
             case "gcc": {
                 filename += ".c";
-                command = String.format("%sgcc %s -o %s.out && %s.out", execPrefix, filename, filename, filename);
+                command += String.format("gcc %s -o %s.out && ./%s.out", filename, filename, filename);
                 break;
             }
-            case "java8": {
+            case "java11": {
                 filename = "Main.java";
-                command = String.format("%sjavac %s && java Main", execPrefix, filename);
+                command += String.format("javac %s && java Main", filename);
                 break;
             }
-            case "java12": {
-                System.out.println("1");
-                command = "2";
+            case "node": {
+                filename += ".js";
+                command += String.format("node %s", filename);
                 break;
             }
-
-//            case "java13": {
-//                command = "";
-//                break;
-//            }
-//            case "javascript": {
-//                command = "";
-//                break;
-//            }
-//
             default: {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         }
+        final String cmd = command;
 
         // 将code写入文件
         try {
@@ -169,8 +160,8 @@ public class ApiController {
         Callable<String[]> call = new Callable<String[]>() {
             public String[] call() throws Exception {
                 // 放入耗时操作代码块
-                System.out.println(command);
-                Process process = runtime.exec(command);
+                System.out.println(cmd);
+                Process process = runtime.exec(cmd);
 
                 // 进行文件读取
                 InputStream resultStream = process.getInputStream();
@@ -228,23 +219,19 @@ public class ApiController {
         File file = new File(filename);
         file.delete();
         switch (language) {
-            case "python3.6": {
-                break;
-            }
-            case "gcc":
-            case "g++": {
+            case "g++":
+            case "gcc": {
                 file = new File(filename + ".out");
                 file.delete();
                 break;
             }
-            case "java8":{
+            case "java11":{
                 file = new File("Main.class");
                 file.delete();
                 break;
             }
-            default: {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
+            default:
+                break;
         }
 
 //        String filenameOut = "";
