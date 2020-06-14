@@ -3,10 +3,7 @@ package com.example.demo.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -20,16 +17,17 @@ import java.util.List;
  * @Author aikx
  * @Date 2020-6-10
  */
-@Controller
+@RestController
+@RequestMapping("/api")
 public class UploadController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UploadController.class);
 
-    @GetMapping("/api")
+    @GetMapping("/upload")
     public String upload() {
         return "upload";
     }
 
-    @PostMapping("/api")
+    @PostMapping("/upload")
     @ResponseBody
     public String upload(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {

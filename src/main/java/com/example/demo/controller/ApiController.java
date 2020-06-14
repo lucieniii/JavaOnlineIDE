@@ -97,33 +97,27 @@ public class ApiController {
         // 获取随机文件名
         String filename = randomFileName();
 
-        // 将code写入文件
-        try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(filename));
-            out.write(code);
-            out.close();
-        } catch (IOException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
         // 生成命令
         String command;
         switch (language) {
             case "python3.6": {
+                filename += ".py";
                 command = String.format("python %s", filename);
                 break;
             }
             case "g++": {
-                command = String.format("g++ %s -o %s.out && %s.out", filename, filename, filename);
+                filename += ".cpp";
+                command = String.format("cmd /c g++ %s -o %s.out && %s.out", filename, filename, filename);
                 break;
             }
             case "gcc": {
-                command = String.format("gcc %s -o %s.out && %s.out", filename, filename, filename);
+                filename += ".c";
+                command = String.format("cmd /c gcc %s -o %s.out && %s.out", filename, filename, filename);
                 break;
             }
             case "java8": {
-                filename = "Main";
-                command = String.format("javac %s && java %s", filename, filename);
+                filename = "Main.java";
+                command = String.format("cmd /c javac %s && java Main", filename);
                 break;
             }
             case "java12": {
@@ -144,6 +138,15 @@ public class ApiController {
             default: {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+        }
+
+        // 将code写入文件
+        try {
+            BufferedWriter out = new BufferedWriter(new FileWriter(filename));
+            out.write(code);
+            out.close();
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
@@ -198,9 +201,10 @@ public class ApiController {
             Future<String[]> future = exec.submit(call);
 
             // 判断运行时间，若超时则直接杀死进程
-            results = future.get(1000 + 1000 * Integer.parseInt(tle), TimeUnit.MILLISECONDS); // 任务处理超时时间设为1 秒
+            results = future.get(5000 + 1000 * Integer.parseInt(tle), TimeUnit.MILLISECONDS); // 任务处理超时时间设为1 秒
 
             System.out.println("任务成功返回:");
+            System.out.println(results[0] + " " + results[1]);
             ret = new ResponseEntity<>(
                     Map.of("result", results[0], "error", results[1]),
                     HttpStatus.OK
@@ -226,6 +230,7 @@ public class ApiController {
             case "python3.6": {
                 break;
             }
+            case "gcc":
             case "g++": {
                 file = new File(filename + ".out");
                 file.delete();
@@ -236,27 +241,27 @@ public class ApiController {
             }
         }
 
-        String filenameOut = "";
-        String resultOut;
-        try{
-            InputStream in = new FileInputStream(filenameOut);
-            InputStreamReader outReader = new InputStreamReader(in);
-            BufferedReader outBR = new BufferedReader(outReader);
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = outBR.readLine()) != null) {
-                sb.append(line);
-                sb.append('\n');
-            }
-            resultOut = sb.toString();
-
-        }catch (Exception e) {
-            System.out.println(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        
-        String judgeResult = judgeOutput(result, resultOut);
-        System.out.println(judgeResult);
+//        String filenameOut = "";
+//        String resultOut;
+//        try{
+//            InputStream in = new FileInputStream(filenameOut);
+//            InputStreamReader outReader = new InputStreamReader(in);
+//            BufferedReader outBR = new BufferedReader(outReader);
+//            StringBuilder sb = new StringBuilder();
+//            String line;
+//            while ((line = outBR.readLine()) != null) {
+//                sb.append(line);
+//                sb.append('\n');
+//            }
+//            resultOut = sb.toString();
+//
+//        }catch (Exception e) {
+//            System.out.println(e.getMessage());
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//
+//        String judgeResult = judgeOutput(result, resultOut);
+//        System.out.println(judgeResult);
 
         String[] py_ban_list = {"os",
                                 "sys",

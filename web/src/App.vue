@@ -70,7 +70,7 @@ export default {
       axios.get('/api/run', {
         params: {
           code: encodeURIComponent(this.code),
-          language: 'python3.6',
+          language: 'gcc',
           password: 'aikxNo.1',
           tle: this.tle,
           mle: this.mle
