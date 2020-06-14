@@ -3,11 +3,27 @@
     <h4>在线IDE</h4>
     <div class="row">
       <div class="btn col s1" @click="run">运行</div>
-      <input class="col s5 offset-s1" placeholder="标准输入(stdin)">
+      <input class="col s5" placeholder="标准输入(stdin)">
       <ul id="language" class="dropdown-content">
         <li><a href="#!">Python3.6</a></li>
       </ul>
-      <a class="btn dropdown-trigger col s4 offset-s1" data-target="language">选择语言</a>
+      <input type="number" class="col s1" placeholder="时间限制(ms)" v-model="tle">
+      <input type="number" class="col s1" placeholder="空间限制(kb)" v-model="mle">
+<!--      v-model 双向绑定-->
+      <html>
+      <head>
+        <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+        <title>单文件上传</title>
+      </head>
+      <body>
+      <form method="post" action="/api" enctype="multipart/form-data">
+        <input type="file" name="file"><br>
+        <input type="submit" value="提交">
+      </form>
+      </body>
+      </html>
+      <a class="btn dropdown-trigger col s4" data-target="language">选择语言</a>
     </div>
     <div class="row">
       <div class="col s7">
@@ -40,7 +56,9 @@ export default {
   data () {
     return {
       code: '',
-      display: ''
+      display: '',
+      tle: '',
+      mle: ''
     }
   },
   mounted () {
@@ -52,8 +70,10 @@ export default {
       axios.get('/api/run', {
         params: {
           code: encodeURIComponent(this.code),
-          language: 'python3.6',
-          password: 'aikxNo.1'
+          language: 'java8',
+          password: 'aikxNo.1',
+          tle: this.tle,
+          mle: this.mle
         }
       }).then((response) => {
         console.log(response.data)
