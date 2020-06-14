@@ -71,7 +71,7 @@ public class ApiController {
     @Value("${spring.profiles.active}")
     private String env;
 
-    private String[] exec(String command, long timeout) {
+    private String[] exec(String command, long timeout, String stdin) {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
 
         // 获取运行时
@@ -82,8 +82,12 @@ public class ApiController {
 
         // 使用Callable 判断任务完成时间
         Callable<String[]> call = () -> {
-            // 放入耗时操作代码块
+            // 放入耗时操作代码块，传入参数
             Process process = runtime.exec(command);
+            OutputStream stdinStream = process.getOutputStream();
+            stdinStream.write(stdin.getBytes());
+            stdinStream.flush();
+            stdinStream.close();
 
             // 进行stdout和stderr读取
             InputStream resultStream = process.getInputStream();
@@ -130,7 +134,7 @@ public class ApiController {
             @RequestParam(value = "code", defaultValue = "") String code,
             @RequestParam(value = "language") String language,
             @RequestParam(value = "password", defaultValue = "") String password,
-            @RequestParam(value = "consoleInput", defaultValue = "") String consoleInput,
+            @RequestParam(value = "stdin", defaultValue = "") String stdin,
             @RequestParam(value = "tle", defaultValue = "1") String tle
     ) {
         // 检测密码
@@ -149,6 +153,7 @@ public class ApiController {
         // 解码code
         try {
             code = new URI(code).getPath();
+            stdin = new URI(stdin).getPath();
         } catch (URISyntaxException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -198,11 +203,11 @@ public class ApiController {
         }
         if (env.equals("prod")) {
             compileCommand = String.format(
-                "docker run --rm -v %s:/home/runner -w /home/runner onlineide:test %s",
+                "docker run --rm -v /root/JavaOnlineIDE/%s:/home/runner -w /home/runner onlineide:test %s",
                 dir, compileCommand
             );
             execCommand = String.format(
-                "docker run --rm -v %s:/home/runner -w /home/runner onlineide:test %s",
+                "docker run --rm -v /root/JavaOnlineIDE/%s:/home/runner -w /home/runner onlineide:test %s",
                 dir, execCommand
             );
         }
@@ -211,11 +216,11 @@ public class ApiController {
         File f = new File(dir);
         f.mkdir();
 
-        // 将code写入文件
+        // 将code和stdin写入文件
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(dir + "/" + file));
-            out.write(code);
-            out.close();
+            BufferedWriter codeWriter = new BufferedWriter(new FileWriter(dir + "/" + file));
+            codeWriter.write(code);
+            codeWriter.close();
         } catch (IOException e) {
             // 删除临时文件夹
             File[] subs = f.listFiles();
@@ -232,7 +237,7 @@ public class ApiController {
 
         String compileError;
         if (!compileCommand.equals("")) {
-            String[] compileResults = exec(compileCommand, 5000);
+            String[] compileResults = exec(compileCommand, 5000, "");
             System.out.println("编译结果");
             System.out.println("stdout: " + compileResults[0]);
             System.out.println("stderr: " + compileResults[1]);
@@ -243,7 +248,7 @@ public class ApiController {
 
         if (compileError.equals("")) {
             System.out.println("开始执行");
-            String[] execResults = exec(execCommand, Math.round(timeout * 1000));
+            String[] execResults = exec(execCommand, Math.round(timeout * 1000), stdin);
             System.out.println("执行结果");
             System.out.println("stdout: " + execResults[0]);
             System.out.println("stderr: " + execResults[1]);
