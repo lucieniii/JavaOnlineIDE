@@ -3,21 +3,20 @@ package com.example.demo.controller;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.*;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api")
 public class ApiController {
@@ -46,6 +45,8 @@ public class ApiController {
      * @Date 2020-6-10
      */
     private String judgeOutput(String r1, String r2) {
+        r1 = r1.strip();
+        r2 = r2.strip();
         String[] s1 = r1.split("\\s+");
         String[] s2 = r2.split("\\s+");
         if (s1.length != s2.length)
@@ -129,13 +130,14 @@ public class ApiController {
         return results;
     }
 
-    @GetMapping("/run")
+    @PostMapping("/run")
     ResponseEntity<Object> run(
             @RequestParam(value = "code", defaultValue = "") String code,
             @RequestParam(value = "language") String language,
             @RequestParam(value = "password", defaultValue = "") String password,
             @RequestParam(value = "stdin", defaultValue = "") String stdin,
-            @RequestParam(value = "tle", defaultValue = "1") String tle
+            @RequestParam(value = "tle", defaultValue = "1") String tle,
+            @RequestParam(value = "file", required = false) MultipartFile file
     ) {
         // 检测密码
         if (!password.equals("aikxNo.1")) {
@@ -163,36 +165,36 @@ public class ApiController {
         String commandDir = env.equals("prod") ? "." : dir;
 
         // 根据语言生成对应文件、编译命令与执行命令
-        String file;
+        String execFile;
         String compileCommand;
         String execCommand;
         switch (language) {
             case "python3": {
-                file = "main.py";
+                execFile = "main.py";
                 compileCommand = "";
                 execCommand = String.format("python %s/main.py", commandDir);
                 break;
             }
             case "g++": {
-                file = "main.cpp";
+                execFile = "main.cpp";
                 compileCommand = String.format("g++ %s/main.cpp -o %s/main", commandDir, commandDir);
                 execCommand = commandDir + "/main";
                 break;
             }
             case "gcc": {
-                file = "main.c";
+                execFile = "main.c";
                 compileCommand = String.format("g++ %s/main.c -o %s/main", commandDir, commandDir);
                 execCommand = commandDir + "/main";
                 break;
             }
             case "java11": {
-                file = "Main.java";
+                execFile = "Main.java";
                 compileCommand = String.format("javac %s/Main.java", commandDir);
                 execCommand = env.equals("prod") ? "java Main" : String.format("java -classpath %s Main", dir);
                 break;
             }
             case "node": {
-                file = "main.js";
+                execFile = "main.js";
                 compileCommand = "";
                 execCommand = String.format("node %s/main.js", commandDir);
                 break;
@@ -203,12 +205,12 @@ public class ApiController {
         }
         if (env.equals("prod")) {
             compileCommand = String.format(
-                "docker run --rm -v /root/JavaOnlineIDE/%s:/home/runner -w /home/runner onlineide:test %s",
-                dir, compileCommand
+                    "docker run --rm -v /root/JavaOnlineIDE/%s:/home/runner -w /home/runner onlineide:test %s",
+                    dir, compileCommand
             );
             execCommand = String.format(
-                "docker run --rm -v /root/JavaOnlineIDE/%s:/home/runner -w /home/runner onlineide:test %s",
-                dir, execCommand
+                    "docker run --rm -v /root/JavaOnlineIDE/%s:/home/runner -w /home/runner onlineide:test %s",
+                    dir, execCommand
             );
         }
 
@@ -218,7 +220,7 @@ public class ApiController {
 
         // 将code和stdin写入文件
         try {
-            BufferedWriter codeWriter = new BufferedWriter(new FileWriter(dir + "/" + file));
+            BufferedWriter codeWriter = new BufferedWriter(new FileWriter(dir + "/" + execFile));
             codeWriter.write(code);
             codeWriter.close();
         } catch (IOException e) {
@@ -233,7 +235,7 @@ public class ApiController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        ResponseEntity<Object> ret;
+        Map<String, String> ret = new HashMap<>();
 
         String compileError;
         if (!compileCommand.equals("")) {
@@ -246,21 +248,20 @@ public class ApiController {
             compileError = "";
         }
 
+        String result = null;
         if (compileError.equals("")) {
             System.out.println("开始执行");
             String[] execResults = exec(execCommand, Math.round(timeout * 1000), stdin);
             System.out.println("执行结果");
-            System.out.println("stdout: " + execResults[0]);
-            System.out.println("stderr: " + execResults[1]);
-            ret = new ResponseEntity<>(
-                Map.of("result", execResults[0], "error", execResults[1]),
-                HttpStatus.OK
-            );
+            System.out.println("\tstdout: " + execResults[0]);
+            System.out.println("\tstderr: " + execResults[1]);
+            ret.put("result", execResults[0]);
+            ret.put("error", execResults[1]);
+            if (execResults[1].equals("")) {
+                result = execResults[0];
+            }
         } else {
-            ret = new ResponseEntity<>(
-                Map.of("result", "", "error", compileError),
-                HttpStatus.OK
-            );
+            ret.put("error", compileError);
         }
 
         // 删除临时文件夹
@@ -272,31 +273,19 @@ public class ApiController {
             f.delete();
         }
 
-//        String filenameOut = "";
-//        String resultOut;
-//        try{
-//            InputStream in = new FileInputStream(filenameOut);
-//            InputStreamReader outReader = new InputStreamReader(in);
-//            BufferedReader outBR = new BufferedReader(outReader);
-//            StringBuilder sb = new StringBuilder();
-//            String line;
-//            while ((line = outBR.readLine()) != null) {
-//                sb.append(line);
-//                sb.append('\n');
-//            }
-//            resultOut = sb.toString();
-//
-//        }catch (Exception e) {
-//            System.out.println(e.getMessage());
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//
-//        String judgeResult = judgeOutput(result, resultOut);
-//        System.out.println(judgeResult);
+        try {
+            String resultOut = new String(file.getBytes());
+            if (result != null) {
+                String judgeResult = judgeOutput(result, resultOut);
+                System.out.println("judge结果：" + judgeResult);
+                ret.put("judge", judgeResult);
+            }
+        } catch (Exception e) {
+            System.out.println("无标准输出或运行错误");
+        }
 
-        // 头文件限制、控制台输入、多文件、
-        // 时间检测、空间检测、文件比对
+        System.out.println("--------------------------------------------------");
 
-        return ret;
+        return new ResponseEntity<Object>(ret, HttpStatus.OK);
     }
 }
