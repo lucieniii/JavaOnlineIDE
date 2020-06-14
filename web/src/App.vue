@@ -8,17 +8,13 @@
           <option value="g++">C++(g++8.3.0)</option>
           <option value="gcc">C(gcc8.3.0)</option>
           <option value="java11">Java(jdk11)</option>
-          <option value="node">Node.js(node10)</option>
+          <option value="node">Javascript(Node10)</option>
         </select>
         <label>选择语言与编译器</label>
       </div>
-      <div class="input-field col s2 offset-s1" id="tle">
+      <div class="input-field col s5 offset-s1" id="tle">
         <input class="validate" type="number" v-model="tle" min="0" max="30">
         <label for="tle">时间限制(s)</label>
-      </div>
-      <div class="input-field col s2 offset-s1" id="mle">
-        <input class="validate" type="number" v-model="mle" min="0" max="65534">
-        <label for="mle">空间限制(KB)</label>
       </div>
       <div class="input-field btn col s1 offset-s1" @click="run">运行</div>
       <div class="input-field col s8">
@@ -75,9 +71,8 @@ export default {
   name: 'App',
   data () {
     return {
-      language: 'python3.6',
+      language: 'python3',
       tle: '',
-      mle: '',
       stdin: '',
       file: '',
       code: '',
@@ -94,7 +89,6 @@ export default {
         params: {
           language: this.language,
           tle: this.tle,
-          mle: this.mle,
           consoleInput: this.stdin,
           code: encodeURIComponent(this.code),
           password: 'aikxNo.1'
@@ -104,13 +98,7 @@ export default {
         this.display = response.data.result || response.data.error
       }).catch((err) => {
         console.log(err)
-        if (err.statusCode === 408) {
-          this.display = '运行超时'
-        } else if (err.statusCode === 500) {
-          this.display = '服务器内部错误'
-        } else {
-          this.display = '错误：' + err
-        }
+        this.display = '未知错误'
       })
     },
     tab (e) {
