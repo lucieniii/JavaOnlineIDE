@@ -198,11 +198,11 @@ public class ApiController {
         }
         if (env.equals("prod")) {
             compileCommand = String.format(
-                "docker run --rm -v %s:/home/runner -w /home/runner onlineide:test %s",
+                "docker run --rm -v /root/JavaOnlineIDE/%s:/home/runner -w /home/runner onlineide:test %s",
                 dir, compileCommand
             );
             execCommand = String.format(
-                "docker run --rm -v %s:/home/runner -w /home/runner onlineide:test %s",
+                "docker run --rm -v /root/JavaOnlineIDE/%s:/home/runner -w /home/runner onlineide:test %s",
                 dir, execCommand
             );
         }
