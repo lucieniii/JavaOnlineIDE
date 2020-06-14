@@ -10,6 +10,19 @@
       <input type="number" class="col s1" placeholder="时间限制(ms)" v-model="tle">
       <input type="number" class="col s1" placeholder="空间限制(kb)" v-model="mle">
 <!--      v-model 双向绑定-->
+      <html>
+      <head>
+        <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+        <title>单文件上传</title>
+      </head>
+      <body>
+      <form method="post" action="/api" enctype="multipart/form-data">
+        <input type="file" name="file"><br>
+        <input type="submit" value="提交">
+      </form>
+      </body>
+      </html>
       <a class="btn dropdown-trigger col s4" data-target="language">选择语言</a>
     </div>
     <div class="row">

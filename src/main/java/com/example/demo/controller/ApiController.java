@@ -20,6 +20,10 @@ import java.util.concurrent.*;
 @RestController
 @RequestMapping("/api")
 public class ApiController {
+    /**
+     * 
+     * @return a random file name
+     */
     private String randomFileName() {
         String name = "";
         Random rand = new Random();
@@ -33,6 +37,40 @@ public class ApiController {
         return name;
     }
 
+    /***
+     * 
+     * @param r1:String 
+     * @param r2:String
+     * @return result
+     * @Author aikx
+     * @Date 2020-6-10
+     */
+    private String judgeOutput(String r1, String r2) {
+        String[] s1 = r1.split("\\s+");
+        String[] s2 = r2.split("\\s+");
+        if(s1.length != s2.length)
+            return "WA";
+        else
+        {
+            for(int i = 0; i < s1.length; i++)
+            {
+                if(s1[i] != s2[i])
+                    return "WA";
+            }
+        }
+        r1 = r1.replace("\t", "");
+        r1 = r1.replace(" ", "");
+        r1 = r1.replace("\r", "");
+        r2 = r2.replace("\t", "");
+        r2 = r2.replace(" ", "");
+        r2 = r2.replace("\r", "");
+        if(r1.equals(r2))
+            return "AC";
+        else
+            return "PE";
+
+    }
+    
     @GetMapping("/run")
     ResponseEntity<Object> run(
             @RequestParam(value = "code", defaultValue = "") String code,
@@ -40,8 +78,8 @@ public class ApiController {
             @RequestParam(value = "password", defaultValue = "") String password,
             @RequestParam(value = "consoleInput", defaultValue = "") String consoleInput,
             @RequestParam(value = "option", defaultValue = "") String option,
-            @RequestParam(value = "tle", defaultValue = "0") String tle,
-            @RequestParam(value = "mle", defaultValue = "0") String mle
+            @RequestParam(value = "tle", defaultValue = "1") String tle,
+            @RequestParam(value = "mle", defaultValue = "65534") String mle
     ) {
         System.out.println(tle + ' ' + mle);
         // 检测密码
@@ -116,7 +154,7 @@ public class ApiController {
         ResponseEntity<Object> ret;
         Runtime runtime = Runtime.getRuntime();
         String[] results = new String[2];
-        String result;
+        String result = null;
 
         // 创建线程池，用于进行处理
         ExecutorService exec = Executors.newFixedThreadPool(1);
@@ -198,8 +236,32 @@ public class ApiController {
             }
         }
 
+        String filenameOut = "";
+        String resultOut;
+        try{
+            InputStream in = new FileInputStream(filenameOut);
+            InputStreamReader outReader = new InputStreamReader(in);
+            BufferedReader outBR = new BufferedReader(outReader);
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = outBR.readLine()) != null) {
+                sb.append(line);
+                sb.append('\n');
+            }
+            resultOut = sb.toString();
 
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
+        String judgeResult = judgeOutput(result, resultOut);
+        System.out.println(judgeResult);
 
+        String[] py_ban_list = {"os",
+                                "sys",
+                                "urllib",
+                                ""};
         //python2.7
         //python3.6
         //c
