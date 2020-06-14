@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,8 +72,6 @@ public class ApiController {
     private String env;
 
     private String[] exec(String command, long timeout, String stdin) {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-
         // 获取运行时
         Runtime runtime = Runtime.getRuntime();
 
@@ -86,9 +83,9 @@ public class ApiController {
             // 放入耗时操作代码块，传入参数
             Process process = runtime.exec(command);
             OutputStream stdinStream = process.getOutputStream();
-            stdinStream.write(stdin.getBytes());
-            stdinStream.flush();
-            stdinStream.close();
+            PrintWriter printWriter = new PrintWriter(stdinStream, true);
+            printWriter.print(stdin);
+            printWriter.close();
 
             // 进行stdout和stderr读取
             InputStream resultStream = process.getInputStream();
@@ -241,8 +238,8 @@ public class ApiController {
         if (!compileCommand.equals("")) {
             String[] compileResults = exec(compileCommand, 5000, "");
             System.out.println("编译结果");
-            System.out.println("stdout: " + compileResults[0]);
-            System.out.println("stderr: " + compileResults[1]);
+            System.out.println("stdout:\n" + compileResults[0]);
+            System.out.println("stderr:\n" + compileResults[1]);
             compileError = compileResults[1];
         } else {
             compileError = "";
@@ -253,8 +250,8 @@ public class ApiController {
             System.out.println("开始执行");
             String[] execResults = exec(execCommand, Math.round(timeout * 1000), stdin);
             System.out.println("执行结果");
-            System.out.println("\tstdout: " + execResults[0]);
-            System.out.println("\tstderr: " + execResults[1]);
+            System.out.println("stdout:\n" + execResults[0]);
+            System.out.println("stderr:\n" + execResults[1]);
             ret.put("result", execResults[0]);
             ret.put("error", execResults[1]);
             if (execResults[1].equals("")) {
@@ -281,11 +278,11 @@ public class ApiController {
                 ret.put("judge", judgeResult);
             }
         } catch (Exception e) {
-            System.out.println("无标准输出或运行错误");
+            System.out.println("judge：未上传比对文件或运行错误");
         }
 
         System.out.println("--------------------------------------------------");
 
-        return new ResponseEntity<Object>(ret, HttpStatus.OK);
+        return new ResponseEntity<>(ret, HttpStatus.OK);
     }
 }
